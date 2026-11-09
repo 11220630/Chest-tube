@@ -50,6 +50,8 @@ th,td{border:1px solid var(--line);padding:9px 10px;text-align:left;vertical-ali
   <h1>20 秒挑戰：你看得出哪裡錯嗎？</h1>
   <p class="sub">共 5 題，每題限時 20 秒。時間一到，視同未作答。<br>作答期間不顯示對錯，5 題全部完成後才公布解答。<br>建議戴上耳機、開啟聲音。準備好了，就按下開始。</p>
   <button class="btn" id="go">開始挑戰</button>
+  <button class="btn" id="test" style="background:transparent;border:2px solid var(--accent);color:var(--ink);margin-left:8px">🔊 先測試音樂</button>
+  <p class="sub" style="font-size:14px">聽不到聲音時：請關閉手機側邊的靜音鍵、調高媒體音量，並用 Chrome 或 Safari 開啟。</p>
 </div>
 
 <div class="card hide" id="quiz">
@@ -92,8 +94,10 @@ let i=0,score=0,left=20,tm=null,res=[],locked=false;
 
 /* ---------- Music: synthesized challenge theme ---------- */
 let ac,master,musicOn=true,seq=null,step=0,tempo=140,urgent=false;
+const SILENT="data:audio/wav;base64,UklGRmQGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUAGAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA";
 function initAudio(){
   if(ac)return;
+  try{const a=document.createElement("audio");a.src=SILENT;a.loop=true;a.setAttribute("playsinline","");a.play().catch(()=>{});window._unlock=a;}catch(e){}
   ac=new (window.AudioContext||window.webkitAudioContext)();
   const comp=ac.createDynamicsCompressor();
   master=ac.createGain();master.gain.value=0.6;
@@ -150,9 +154,12 @@ function playStep(t){
 }
 function startMusic(){
   if(!ac||!musicOn||seq)return;
-  if(ac.state==="suspended")ac.resume();
-  let next=ac.currentTime+0.05;
-  seq=setInterval(()=>{while(next<ac.currentTime+0.2){playStep(next);next+=60/tempo/4;}},50);
+  const go=()=>{
+    if(seq)return;
+    let next=ac.currentTime+0.05;
+    seq=setInterval(()=>{try{while(next<ac.currentTime+0.2){playStep(next);next+=60/tempo/4;}}catch(e){console.error(e);}},50);
+  };
+  if(ac.state!=="running")ac.resume().then(go).catch(go);else go();
 }
 function stopMusic(){if(seq){clearInterval(seq);seq=null;}}
 function musicStart(){startMusic();}
@@ -210,6 +217,7 @@ function finish(){
   $("tb").innerHTML=res.map((r,k)=>{const d=Q[k];return "<tr><td>"+(k+1)+"</td><td>"+(r.ok?"✓ 答對":r.timeout?"⏰ 逾時":"✗ 答錯")+"</td><td>"+(r.pick<0?"未作答":"ABCD"[r.pick])+" / "+"ABCD"[d.a]+"</td><td>"+d.key+"。"+d.why+"<br><b>口訣："+d.mn+"</b></td></tr>";}).join("");
 }
 $("go").onclick=begin;
+$("test").onclick=()=>{initAudio();stopMusic();tempo=150;urgent=false;step=0;musicOn=true;startMusic();setTimeout(stopMusic,3500);};
 $("reveal").onclick=()=>{$("pre").classList.add("hide");$("post").classList.remove("hide");};
 $("again").onclick=()=>{show("start");$("mute").classList.add("hide");$("pre").classList.remove("hide");$("post").classList.add("hide");};
 $("next").onclick=()=>{i++;if(i<Q.length)ask();else finish();};
