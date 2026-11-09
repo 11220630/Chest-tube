@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>胸管檢測題｜20 秒挑戰</title>
+<style>
+:root{--bg:#f1f5fb;--card:#fff;--ink:#12305a;--sub:#4d6486;--line:#c9d6e8;--ok:#1e8e5a;--okbg:#e3f5ec;--bad:#c9353f;--badbg:#fbe6e8;--accent:#e8a317;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1c36;--card:#12305a;--ink:#eef3fb;--sub:#a9bbd6;--line:#2c4b7c;--ok:#4fd197;--okbg:#14473a;--bad:#ff7a82;--badbg:#4a2330;--accent:#ffc83d}}
+:root[data-theme="dark"]{--bg:#0b1c36;--card:#12305a;--ink:#eef3fb;--sub:#a9bbd6;--line:#2c4b7c;--ok:#4fd197;--okbg:#14473a;--bad:#ff7a82;--badbg:#4a2330;--accent:#ffc83d}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;min-height:100vh;display:flex;justify-content:center}
+.wrap{width:100%;max-width:720px;padding:20px 16px 40px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px}
+h1{font-size:28px;margin:0 0 6px}h2{font-size:21px;line-height:1.5;margin:10px 0 16px}
+.sub{color:var(--sub);line-height:1.7}
+.tag{display:inline-block;background:var(--accent);color:#12305a;font-weight:700;border-radius:999px;padding:3px 12px;font-size:13px}
+button{font:inherit;cursor:pointer}
+.btn{background:var(--accent);color:#12305a;border:0;border-radius:12px;padding:13px 26px;font-weight:700;font-size:17px;margin-top:14px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-weight:700}
+.time{font-size:30px;font-variant-numeric:tabular-nums;color:var(--accent)}
+.time.hot{color:var(--bad);animation:pulse .5s infinite alternate}
+@keyframes pulse{to{transform:scale(1.18)}}
+.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin-bottom:14px}
+#fill{height:100%;width:100%;background:var(--accent);transform-origin:left}
+.opt{display:block;width:100%;text-align:left;background:transparent;color:var(--ink);border:2px solid var(--line);border-radius:12px;padding:13px 15px;margin:9px 0;font-size:16.5px;line-height:1.5}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.ok{border-color:var(--ok);background:var(--okbg)}.opt.bad{border-color:var(--bad);background:var(--badbg)}
+.fb{margin-top:14px;padding:14px;border-radius:12px;line-height:1.7;background:var(--okbg);border-left:5px solid var(--ok)}
+.fb.bad{background:var(--badbg);border-color:var(--bad)}
+.mn{margin-top:8px;font-weight:700}
+.score{font-size:46px;font-weight:800;color:var(--accent)}
+.tablewrap{overflow-x:auto}table{border-collapse:collapse;width:100%;margin-top:12px;font-size:15px}
+th,td{border:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}th{background:var(--line)}
+.mute{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);right:12px;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:14px}
+.hide{display:none}
+.sel{border-color:var(--accent);background:var(--line)}
+.yt{position:fixed;left:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 8px);width:150px;height:84px;border-radius:8px;overflow:hidden;z-index:5;border:1px solid var(--line)}
+.yt iframe{width:100%;height:100%;border:0}
+</style>
+</head>
+<body>
+<button class="mute hide" id="mute">🔊 音樂開</button>
+
+<div class="wrap">
+
+<div class="card" id="start">
+  <span class="tag">胸管檢測題</span>
+  <h1>20 秒挑戰：你看得出哪裡錯嗎？</h1>
+  <p class="sub">共 5 題，每題限時 20 秒。時間一到，視同未作答。<br>作答期間不顯示對錯，5 題全部完成後才公布解答。<br>建議戴上耳機、開啟聲音。準備好了，就按下開始。</p>
+  <button class="btn" id="go">開始挑戰</button>
+</div>
+
+<div class="card hide" id="quiz">
+  <div class="top"><span id="qn"></span><span class="time" id="t">20</span></div>
+  <div class="bar"><div id="fill"></div></div>
+  <h2 id="q"></h2>
+  <div id="opts"></div>
+  <div id="fb" class="hide"></div>
+  <button class="btn hide" id="next">下一題</button>
+</div>
+
+<div class="card hide" id="end">
+  <div id="pre"><span class="tag">作答完畢</span><h1>5 題全部完成</h1><p class="sub">準備好公布解答了嗎？</p><button class="btn" id="reveal">公布解答</button></div>
+  <div id="post" class="hide">
+  <span class="tag">結算</span>
+  <div class="score" id="sc"></div>
+  <p class="sub" id="msg"></p>
+  <div class="tablewrap"><table><thead><tr><th>題</th><th>結果</th><th>你的答案 / 正確答案</th><th>解析</th></tr></thead><tbody id="tb"></tbody></table></div>
+  <p class="mn">每班五看：管、口、水、位、量，最後一定要看病人。</p>
+  <button class="btn" id="again">再挑戰一次</button>
+  </div>
+</div>
+</div>
+
+<script>
+const Q=[
+{q:"單瓶引流瓶換瓶後，瓶蓋上的排氣口被蓋住了。最可能發生什麼事？",o:["引流量變少，但沒有危險","氣體沒有出口，可能造成張力性氣胸","水封變深，引流更順","瓶內水位自動下降"],a:1,
+ why:"排氣口是單瓶唯一的出氣口，蓋住後氣體出不去。處理：立刻打開，評估呼吸、SpO₂、皮下氣腫。",mn:"排氣口要開，換瓶再看一眼",key:"排氣口蓋住 → 張力性氣胸風險"},
+{q:"三腔引流瓶，病人的胸管應該接在哪裡？",o:["左側細長接口","圓頂寬口大蓋子","圓頂最右邊的高接口","主收集室的瓶身"],a:2,
+ why:"胸管接圓頂最右高接口，氣體才會經過水封。左側細長接口是排氣口，也是接低壓抽吸的位置。",mn:"胸管接最右，抽吸接左側",key:"胸管接圓頂最右高接口"},
+{q:"病人安靜吸氣時，水封區明顯冒泡（吐氣或咳嗽時才冒泡較常見）。你首先該懷疑什麼？",o:["胸管接到排氣口，也就是接反了","肺部已完全擴張","水加得剛剛好","引流液顏色正常"],a:0,
+ why:"吸氣時冒泡，要懷疑胸管接到排氣口或系統漏氣，水封失效。依規範處理，並評估呼吸、通知醫師。",mn:"吸氣才冒泡，要懷疑接反",key:"吸氣冒泡 → 懷疑接反或漏氣"},
+{q:"病人要離床外出，你把壁式低壓調節器關掉了。接下來最重要的動作是？",o:["把引流瓶高舉過胸","用管夾夾住胸管","調節器關了就好，不必處理","立刻拔開抽吸管，讓出氣口保持開放"],a:3,
+ why:"只關調節器、抽吸管還接著，氣體沒有出口，可能造成張力性氣胸。關抽吸，一定拔管開出口。",mn:"關抽吸，一定拔管開出口",key:"關抽吸後要拔管，出口保持開放"},
+{q:"醫囑為低壓抽吸，調節器該設定在哪個範圍？",o:["−100 至 −150 cmH₂O，抽越大力越好","−10 至 −20 cmH₂O，依醫囑設定","−50 mmHg，同抽痰設定","任何壓力都可以，水封會保護"],a:1,
+ why:"胸瓶要用低壓調節器，不能用一般抽痰的高壓設定。壓力過高可能傷肺、漏氣更久、血氧下降。",mn:"−10 至 −20，依醫囑",key:"低壓抽吸 −10 至 −20 cmH₂O，依醫囑"}
+];
+const $=id=>document.getElementById(id);
+let i=0,score=0,left=20,tm=null,res=[],locked=false;
+
+/* ---------- Music: synthesized challenge theme ---------- */
+let ac,master,musicOn=true,seq=null,step=0,tempo=140,urgent=false;
+function initAudio(){
+  if(ac)return;
+  ac=new (window.AudioContext||window.webkitAudioContext)();
+  const comp=ac.createDynamicsCompressor();
+  master=ac.createGain();master.gain.value=0.6;
+  master.connect(comp);comp.connect(ac.destination);
+}
+function tone(f,t,d,type,vol,detune,cut){
+  const o=ac.createOscillator(),g=ac.createGain(),lp=ac.createBiquadFilter();
+  o.type=type;o.frequency.value=f;if(detune)o.detune.value=detune;
+  lp.type="lowpass";lp.frequency.value=cut||4000;
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+  o.connect(lp);lp.connect(g);g.connect(master);o.start(t);o.stop(t+d+0.05);
+}
+function kick(t){
+  const o=ac.createOscillator(),g=ac.createGain();
+  o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(40,t+0.12);
+  g.gain.setValueAtTime(0.9,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+0.25);
+}
+function noise(t,d,vol,hp){
+  const n=Math.floor(ac.sampleRate*d),b=ac.createBuffer(1,n,ac.sampleRate),a=b.getChannelData(0);
+  for(let k=0;k<n;k++)a[k]=Math.random()*2-1;
+  const s=ac.createBufferSource();s.buffer=b;
+  const f=ac.createBiquadFilter();f.type="highpass";f.frequency.value=hp;
+  const g=ac.createGain();g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+  s.connect(f);f.connect(g);g.connect(master);s.start(t);
+}
+const ROOT=[110,87.31,130.81,98];                    // A, F, C, G (bass)
+const NF={C5:523.25,D5:587.33,E5:659.25,F5:698.46,G5:783.99,A4:440,A5:880,B5:987.77,C6:1046.5,D6:1174.66,E6:1318.51};
+const MEL=[
+ "A5 . A5 C6 . A5 . E5 A5 . C6 B5 . A5 G5 .",
+ "F5 . F5 A5 . F5 . C5 F5 . A5 G5 . F5 E5 .",
+ "E5 . G5 C6 . G5 . E5 G5 . C6 D6 . C6 G5 .",
+ "D5 . G5 B5 . D6 . B5 G5 A5 B5 C6 D6 E6 . ."
+].map(r=>r.split(" "));
+function playStep(t){
+  const b=step%16,bar=Math.floor(step/16)%4,sd=60/tempo/4;
+  // 8-bit bouncy bass: root / octave on every 8th note (triangle)
+  if(b%2===0)tone(b%4===0?ROOT[bar]:ROOT[bar]*2,t,sd*1.7,"triangle",0.38,0,1800);
+  // drums: kick, snare, hats
+  if(b%8===0||(urgent&&b%4===0))kick(t);
+  if(b===4||b===12){noise(t,0.12,0.28,2000);}
+  if(b%2===0)noise(t,0.03,0.1,8000);
+  if(urgent&&b%2===1)noise(t,0.02,0.12,9000);
+  // chiptune lead (square)
+  const n=MEL[bar][b];
+  if(n!=="."){
+    tone(NF[n],t,sd*1.6,"square",0.085,0,3500);
+    if(urgent)tone(NF[n]/2,t,sd*1.6,"square",0.05,7,2500);
+  }
+  // tension riser at end of each 4-bar phrase
+  if(bar===3&&b>=10)noise(t,sd,0.05+(b-10)*0.025,3500+(b-10)*600);
+  step++;
+}
+function startMusic(){
+  if(!ac||!musicOn||seq)return;
+  if(ac.state==="suspended")ac.resume();
+  let next=ac.currentTime+0.05;
+  seq=setInterval(()=>{while(next<ac.currentTime+0.2){playStep(next);next+=60/tempo/4;}},50);
+}
+function stopMusic(){if(seq){clearInterval(seq);seq=null;}}
+function musicStart(){startMusic();}
+function musicStop(){stopMusic();}
+function tick(hot){if(!ac||!musicOn)return;tone(hot?1568:1175,ac.currentTime+0.01,0.08,"square",hot?0.12:0.06,0,5000);}
+$("mute").onclick=()=>{
+  musicOn=!musicOn;$("mute").textContent=musicOn?"\ud83d\udd0a \u97f3\u6a02\u958b":"\ud83d\udd07 \u97f3\u6a02\u95dc";
+  if(!musicOn)stopMusic();else if(timerRunning)startMusic();
+};
+
+/* ---------- Quiz flow ---------- */
+let timerRunning=false;
+function show(id){["start","quiz","end"].forEach(x=>$(x).classList.toggle("hide",x!==id));}
+function begin(){
+  initAudio();i=0;score=0;res=[];tempo=150;
+  $("mute").classList.remove("hide");show("quiz");ask();
+}
+function ask(){
+  locked=false;left=20;urgent=false;tempo=150+i*5;
+  const d=Q[i];
+  $("qn").textContent="第 "+(i+1)+" / "+Q.length+" 題";
+  $("q").textContent=d.q;$("fb").classList.add("hide");$("next").classList.add("hide");
+  const box=$("opts");box.innerHTML="";
+  d.o.forEach((txt,k)=>{
+    const b=document.createElement("button");b.className="opt";
+    b.textContent="ABCD"[k]+".　"+txt;b.onclick=()=>pick(k);box.appendChild(b);
+  });
+  $("t").textContent=left;$("t").classList.remove("hot");
+  const f=$("fill");f.style.transition="none";f.style.transform="scaleX(1)";
+  void f.offsetWidth;f.style.transition="transform 20s linear";f.style.transform="scaleX(0)";
+  timerRunning=true;step=0;stopMusic();startMusic();
+  clearInterval(tm);
+  tm=setInterval(()=>{
+    left--;$("t").textContent=left;if(left>0)tick(left<=5);
+    if(left<=7&&!urgent){urgent=true;tempo=182+i*4;$("t").classList.add("hot");}
+    if(left<=0){pick(-1);}
+  },1000);
+}
+function pick(k){
+  if(locked)return;locked=true;clearInterval(tm);timerRunning=false;
+  const d=Q[i];
+  if(k===d.a)score++;
+  res.push({ok:k===d.a,timeout:k<0,pick:k});
+  [...document.querySelectorAll(".opt")].forEach((b,idx)=>{b.disabled=true;if(idx===k)b.classList.add("sel");});
+  document.getElementById("fill").style.transition="none";
+  const fb=$("fb");fb.className="fb";
+  fb.innerHTML="<b>"+(k<0?"⏰ 時間到":"✓ 已記錄")+"</b>　解答將在最後公布。";
+  setTimeout(()=>{i++;if(i<Q.length)ask();else finish();},1100);
+}
+function finish(){
+  musicStop();
+  show("end");
+  $("sc").textContent=score+" / "+Q.length;
+  $("msg").textContent=score===5?"全部答對。臨床判讀穩定。":score>=3?"表現不錯，回頭看看錯的那幾題。":"建議複習單瓶、三腔與抽吸的接法。";
+  $("tb").innerHTML=res.map((r,k)=>{const d=Q[k];return "<tr><td>"+(k+1)+"</td><td>"+(r.ok?"✓ 答對":r.timeout?"⏰ 逾時":"✗ 答錯")+"</td><td>"+(r.pick<0?"未作答":"ABCD"[r.pick])+" / "+"ABCD"[d.a]+"</td><td>"+d.key+"。"+d.why+"<br><b>口訣："+d.mn+"</b></td></tr>";}).join("");
+}
+$("go").onclick=begin;
+$("reveal").onclick=()=>{$("pre").classList.add("hide");$("post").classList.remove("hide");};
+$("again").onclick=()=>{show("start");$("mute").classList.add("hide");$("pre").classList.remove("hide");$("post").classList.add("hide");};
+$("next").onclick=()=>{i++;if(i<Q.length)ask();else finish();};
+</script>
+</body>
+</html>
